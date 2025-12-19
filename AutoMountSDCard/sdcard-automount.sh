@@ -1,7 +1,9 @@
 #!/bin/bash
-# SD Card Auto-mount Script v3
+# SD Card Auto-mount Script v3.3
 # This script automatically mounts SD card partitions when inserted
 # If already mounted, it unmounts and remounts fresh
+# Excludes system eMMC (mmcblk2) - only mounts external SD cards
+# Only mounts common data filesystems (ext2/3/4, ntfs, vfat/fat/exfat, xfs, btrfs)
 
 ACTION=$1
 DEVNAME=$2
@@ -21,18 +23,35 @@ fi
 
 case "$ACTION" in
     add)
+        # Skip system eMMC (mmcblk2) - only mount external SD cards
+        if [[ "$DEVNAME" =~ mmcblk2 ]]; then
+            log_message "Skipping $DEVNAME - system eMMC (not external SD card)"
+            exit 0
+        fi
+        
         # Wait a moment for the device to be ready
         sleep 1
         
         # Check if device exists and is a block device
         if [ -b "$DEVNAME" ]; then
-            # Check if partition has a filesystem (skip boot/system partitions without filesystems)
+            # Check if partition has a filesystem
             FS_TYPE=$(blkid -s TYPE -o value "$DEVNAME" 2>/dev/null)
             
             if [ -z "$FS_TYPE" ]; then
                 log_message "Skipping $DEVNAME - no filesystem detected"
                 exit 0
             fi
+            
+            # Only mount common data filesystems (exclude system/boot filesystems)
+            case "$FS_TYPE" in
+                ext2|ext3|ext4|ntfs|vfat|fat|exfat|xfs|btrfs)
+                    # These are data filesystems, proceed with mounting
+                    ;;
+                *)
+                    log_message "Skipping $DEVNAME - filesystem type '$FS_TYPE' not supported for auto-mount"
+                    exit 0
+                    ;;
+            esac
             
             # Get partition name (e.g., mmcblk0p9)
             PARTITION=$(basename "$DEVNAME")

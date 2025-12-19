@@ -11,8 +11,9 @@ This system automatically mounts SD card partitions when inserted and unmounts t
 - ✅ **Automatic mounting** on SD card insertion
 - ✅ **Automatic unmounting** on SD card removal
 - ✅ **Intelligent remount** - unmounts and remounts if already mounted
-- ✅ **Filesystem detection** - only mounts partitions with valid filesystems
+- ✅ **Smart filesystem filtering** - only mounts data filesystems (ext2/3/4, ntfs, vfat/fat/exfat, xfs, btrfs)
 - ✅ **Works with any SD card** - not device-specific
+- ✅ **System eMMC protection** - excludes mmcblk2 (system eMMC) from auto-mounting
 - ✅ **User-agnostic** - automatically detects and configures for any user
 - ✅ **Comprehensive logging** - all operations logged to `/var/log/sdcard-automount.log`
 - ✅ **Convenient access** - symlink at `~/sdcard_data` for easy access
@@ -229,11 +230,12 @@ sudo cat /etc/sudoers.d/sdcard-automount
 
 ## Technical Details
 
-### Supported Filesystems
-- ext2, ext3, ext4
-- FAT16, FAT32, exFAT
-- NTFS
-- Any filesystem with `blkid` detection
+### Supported Filesystems (Data Partitions Only)
+The system only mounts partitions with the following data filesystems:
+- **Linux:** ext2, ext3, ext4, xfs, btrfs
+- **Windows:** ntfs, vfat, fat, exfat
+
+System/boot filesystems and partitions without filesystems are automatically skipped.
 
 ### Mount Point Structure
 ```
@@ -255,6 +257,7 @@ sudo cat /etc/sudoers.d/sdcard-automount
 - Compatible with any Linux system using udev and systemd
 - Handles multiple SD cards simultaneously
 - Skips partitions without filesystems (boot loaders, etc.)
+- Skips system/boot filesystems (only mounts common data filesystems)
 - Automatically cleans up stale mount points
 - User-agnostic installation (works for any Linux user)
 
@@ -268,6 +271,8 @@ This implementation is provided as-is for system administration purposes.
 - **v2.0** - Added systemd integration for reliable unmounting
 - **v3.0** - Added intelligent remount capability when already mounted
 - **v3.1** - Created automatic install/uninstall scripts with user detection
+- **v3.2** - Added system eMMC exclusion (skips mmcblk2 devices)
+- **v3.3** - Added filesystem filtering (only mounts data filesystems)
 
 ---
 *Created: 2025-12-19*
