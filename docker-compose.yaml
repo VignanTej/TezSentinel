@@ -1,0 +1,124 @@
+services:
+  # Frigate NVR with Rockchip hardware acceleration
+  frigate:
+    container_name: frigate
+    privileged: true  # Use during initial setup, then switch to specific permissions below
+    restart: unless-stopped
+    stop_grace_period: 30s  # Allow enough time to shut down the various services
+    image: ghcr.io/blakeblackshear/frigate:stable-rk  # Rockchip-specific image
+    shm_size: "512mb"  # Update for your cameras based on calculation
+    
+    # Security options for Rockchip hardware access
+    security_opt:
+      - apparmor=unconfined
+      - systempaths=unconfined
+    
+    # Hardware device access for Rockchip SBC
+    devices:
+      - /dev/dri          # GPU/VPU access
+      - /dev/dma_heap     # DMA heap for hardware acceleration
+      - /dev/rga          # RGA (Raster Graphic Acceleration) unit
+      - /dev/mpp_service  # Media Process Platform service
+    
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./Frigate/config:/config
+      - ./Frigate/storage:/media/frigate
+      - /sys/:/sys/:ro  # Required for Rockchip hardware access
+      - type: tmpfs  # Optional: 1GB of memory, reduces SSD/SD Card wear
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    
+    ports:
+      - "8971:8971"      # Frigate Web UI
+      - "8554:8554"      # RTSP feeds
+      - "8555:8555/tcp"  # WebRTC over tcp
+      - "8555:8555/udp"  # WebRTC over udp
+      - "1984:1984"      # go2rtc API
+    
+    environment:
+      FRIGATE_RTSP_PASSWORD: "TezCam@1984"
+    
+    # Network configuration - connect to tez-sentinel-net for MQTT communication
+    networks:
+      - tez-sentinel-net
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Home Assistant - Smart Home Hub
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ./HA/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    environment:
+      TZ: Asia/Kolkata
+
+  # Node-RED - Flow-based automation
+  node-red:
+    image: nodered/node-red:latest
+    container_name: nodered
+    restart: unless-stopped
+    
+    environment:
+      - TZ=Asia/Kolkata
+      - NODE_RED_ENABLE_SAFE_MODE=false
+      - NODE_RED_ENABLE_PROJECTS=true
+      - NODE_OPTIONS=--max-old-space-size=256
+      
+    ports:
+      - "1880:1880"
+      
+    volumes:
+      # Main data directory for flows, credentials, and settings
+      - ./NR+MQTT/data:/data
+      
+    networks:
+      - tez-sentinel-net
+      
+    # Health check to ensure Node-RED is running properly
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1880/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+      
+    volumes:
+      - ./NR+MQTT/mosquitto/config:/mosquitto/config
+      - ./NR+MQTT/mosquitto/data:/mosquitto/data
+      - ./NR+MQTT/mosquitto/log:/mosquitto/log
+      
+    networks:
+      - tez-sentinel-net
+      
+    environment:
+      - TZ=Asia/Kolkata
+
+# Shared network for inter-service communication
+networks:
+  tez-sentinel-net:
+    driver: bridge
+    name: tez-sentinel-network

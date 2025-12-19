@@ -1,0 +1,2 @@
+# Allow udev to run sdcard unmount script without password
+ALL ALL=(ALL) NOPASSWD: /usr/local/bin/sdcard-unmount.sh

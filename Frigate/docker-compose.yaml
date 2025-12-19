@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  frigate:
+    container_name: frigate
+    privileged: true  # Use during initial setup, then switch to specific permissions below
+    restart: unless-stopped
+    stop_grace_period: 30s  # Allow enough time to shut down the various services
+    image: ghcr.io/blakeblackshear/frigate:stable-rk  # Rockchip-specific image
+    shm_size: "512mb"  # Update for your cameras based on calculation
+    
+    # Security options for Rockchip hardware access
+    security_opt:
+      - apparmor=unconfined
+      - systempaths=unconfined
+    
+    # Hardware device access for Rockchip SBC
+    devices:
+      - /dev/dri          # GPU/VPU access
+      - /dev/dma_heap     # DMA heap for hardware acceleration
+      - /dev/rga          # RGA (Raster Graphic Acceleration) unit
+      - /dev/mpp_service  # Media Process Platform service
+    
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config:/config
+      - ./storage:/media/frigate
+      - /sys/:/sys/:ro  # Required for Rockchip hardware access
+      - type: tmpfs  # Optional: 1GB of memory, reduces SSD/SD Card wear
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    
+    ports:
+      - "8971:8971"      # Frigate Web UI
+      - "8554:8554"      # RTSP feeds
+      - "8555:8555/tcp"  # WebRTC over tcp
+      - "8555:8555/udp"  # WebRTC over udp
+      - "1984:1984"      # go2rtc API
+    
+    environment:
+      FRIGATE_RTSP_PASSWORD: "TezCam@1984"
+    
+    # Network configuration - connect to tez-sentinel-net for MQTT communication
+    networks:
+      - tez-sentinel-net
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8971/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# External network configuration to join Node-RED/MQTT network
+networks:
+  tez-sentinel-net:
+    external: true
+    name: tez-sentinel-network

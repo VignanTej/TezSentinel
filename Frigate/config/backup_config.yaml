@@ -1,0 +1,115 @@
+# auth:
+#   reset_admin_password: true
+
+# Frigate Configuration for Rockchip SBC
+# For Frigate 0.16.2
+
+mqtt:
+  enabled: false
+
+database:
+  path: /config/frigate.db
+
+# RKNN detector for Rockchip
+detectors:
+  # cpu:
+  #   type: cpu
+  rknn:
+    type: rknn
+
+# Hardware acceleration for Rockchip
+ffmpeg:
+  hwaccel_args: preset-rk-h264
+
+cameras:
+  lab_camera:
+    enabled: true
+
+    ffmpeg:
+      inputs:
+        # Main/full-resolution stream -> used for recorded segments and live view
+        - path: "rtsp://view:TezCam123@192.168.68.155:554/stream1"
+          input_args:
+            - -rtsp_transport
+            - tcp
+          roles:
+            - record
+
+        # Substream/lower-resolution -> used for detection
+        - path: "rtsp://view:TezCam123@192.168.68.155:554/stream2"
+          input_args:
+            - -rtsp_transport
+            - tcp
+          roles:
+            - detect
+
+    # Detection settings (apply to the detect-role stream)
+    detect:
+      width: 848
+      height: 480
+      fps: 5
+
+    # Camera-level object tracking & filters (only track person)
+    objects:
+      track:
+        - person
+      filters:
+        person:
+          min_score: 0.5
+          min_area: 500
+          max_area: 1000000
+          threshold: 5
+
+    # Recording configuration for 0.16.x:
+    # - continuous segments retention set to 0 days (no continuous storage)
+    # - detections retain configuration controls event retention (3 days)
+    record:
+      enabled: true
+      retain:
+        days: 0
+        mode: motion
+
+      # For Frigate 0.16.x use alerts/detections (not `events`)
+      alerts:
+        # how long to keep recordings that overlap alerts (alerts are review items created by notifier/zone/alert rules)
+        retain:
+          days: 0
+          mode: motion
+        # (pre_capture/post_capture can be placed here if you want alert-specific buffers)
+        pre_capture: 5
+        post_capture: 5
+
+      detections:
+        # how long to keep recordings that overlap detections (tracked objects)
+        retain:
+          days: 3
+          mode: motion
+        # buffers (seconds) to include before/after detection in saved segments
+        pre_capture: 5
+        post_capture: 5
+
+    # Snapshots (lightweight JPEGs produced for events)
+    snapshots:
+      enabled: true
+      timestamp: true
+      bounding_box: true
+      crop: false
+      height: 175
+      retain:
+        default: 3
+      quality: 70
+
+# Live view configuration (UI)
+live:
+  height: 720
+  quality: 8
+
+# UI timezone
+ui:
+  timezone: Asia/Kolkata
+
+# Global detect toggle
+detect:
+  enabled: true
+
+version: 0.16.2

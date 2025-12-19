@@ -1,0 +1,203 @@
+# Frigate Configuration with go2rtc and Dual Stream Setup
+# Based on full reference: https://docs.frigate.video/configuration/reference/
+
+# go2rtc Configuration for improved streaming
+go2rtc:
+  streams:
+    bambooranch_1:
+      - rtsp://view:TezCam123@192.168.1.102:554/stream1
+    bambooranch_1_sub:
+      - rtsp://view:TezCam123@192.168.1.102:554/stream2
+  webrtc:
+    candidates:
+      - 192.168.1.100:8555  # Replace with your Frigate server IP
+      - stun:8555
+
+# MQTT Configuration
+mqtt:
+  enabled: true
+  host: mosquitto  # Using container name since we're on the same Docker network
+  port: 1883
+  user: frigate
+  password: frigate_password
+  topic_prefix: frigate
+  client_id: frigate
+  stats_interval: 60  # Send stats every 60 seconds
+
+# Database Configuration
+database:
+  path: /config/frigate.db
+
+# Object Detection Configuration
+detectors:
+  rknn:
+    type: rknn
+    num_cores: 2
+    device: /dev/dri/renderD128
+
+# Hardware Acceleration for Rockchip
+ffmpeg:
+  hwaccel_args: preset-rk-h264
+
+# Global Object Detection Settings
+objects:
+  track:
+    - person
+    - face
+    - license_plate
+    - dog
+    - cat
+    - car
+    - amazon
+    - fedex
+    - ups
+    - package
+    
+# Recording Configuration
+record:
+  enabled: true
+  retain:
+    days: 7
+    mode: motion
+
+# Live Stream Configuration
+live:
+  height: 720
+  quality: 8
+
+# Birdseye View Configuration
+birdseye:
+  enabled: true
+  width: 1280
+  height: 720
+  quality: 8
+  mode: objects
+
+# Review Configuration for Person Detection
+review:
+  alerts:
+    labels:
+      - person
+    required_zones: []
+  detections:
+    labels:
+      - person
+
+# Camera Configuration with Dual Streams
+cameras:
+  bambooranch_1:
+    enabled: true
+    ffmpeg:
+      inputs:
+        # High quality stream1 for recording and live view
+        - path: rtsp://view:TezCam123@192.168.1.102:554/stream1
+          input_args:
+            - -rtsp_transport
+            - tcp
+            - -fflags
+            - nobuffer
+            - -flags
+            - low_delay
+          roles:
+            - record
+        # Lower quality stream2 for detection (better performance)
+        - path: rtsp://view:TezCam123@192.168.1.102:554/stream2
+          input_args:
+            - -rtsp_transport
+            - tcp
+            - -fflags
+            - nobuffer
+            - -flags
+            - low_delay
+          roles:
+            - detect
+
+    # Detection Configuration (uses stream2)
+    detect:
+      width: 704   # stream2 resolution
+      height: 576  # stream2 resolution
+      fps: 5
+      enabled: true
+
+    # Recording Configuration (uses stream1)
+    record:
+      enabled: true
+      retain:
+        days: 7
+        mode: motion
+
+    # Motion Detection
+    motion:
+      mask: []
+      threshold: 25
+      contour_area: 30
+      delta_alpha: 0.2
+      frame_alpha: 0.2
+      frame_height: 180
+
+    # Object Tracking
+    objects:
+      track:
+        - person
+        - face
+        - license_plate
+        - dog
+        - cat
+        - car
+        - amazon
+        - fedex
+        - ups
+        - package
+      filters:
+        person:
+          min_area: 5000
+          max_area: 100000
+          min_score: 0.5
+          threshold: 0.7
+
+    # Snapshots Configuration
+    snapshots:
+      enabled: true
+      timestamp: false
+      bounding_box: true
+      crop: false
+      retain:
+        default: 14
+        objects:
+          person: 30
+
+# Web UI Configuration
+ui:
+  timezone: Asia/Calcutta
+
+# Global Detection Settings
+detect:
+  enabled: true
+  width: 1280
+  height: 720
+  fps: 5
+
+# Notification Settings
+notifications:
+  enabled: false
+
+# Advanced Features
+semantic_search:
+  enabled: false
+  model_size: small
+
+face_recognition:
+  enabled: true
+  model_size: small
+
+# License Plate Recognition
+lpr:
+  enabled: true
+
+# Classification Settings
+classification:
+  bird:
+    enabled: false
+
+# Version
+version: 0.16-0

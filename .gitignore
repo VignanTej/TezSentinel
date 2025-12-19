@@ -1,0 +1,56 @@
+# Storage directories
+**/storage/
+**/recordings/
+**/clips/
+**/exports/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Log files
+*.log
+*.log.*
+*.log.fault
+
+# Secrets and credentials
+**/secrets.yaml
+**/password.txt
+**/.jwt_secret
+**/flows_cred.json
+**/.flows_cred.json.backup
+
+# Runtime and lock files
+**/.ha_run.lock
+**/.config.*.json.backup
+**/.flows.json.backup
+
+# Model cache and large binary files
+**/model_cache/
+*.onnx
+*.rknn
+*.tflite
+
+# Node modules and npm cache
+**/node_modules/
+**/.npm/
+
+# Home Assistant storage (contains sensitive data)
+**/.storage/
+**/.cloud/
+
+# Mosquitto data
+**/mosquitto/data/
+**/mosquitto/log/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

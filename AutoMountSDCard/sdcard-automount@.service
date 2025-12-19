@@ -1,0 +1,8 @@
+[Unit]
+Description=Auto-mount SD Card Partition %i
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sdcard-automount.sh add /dev/%i
+RemainAfterExit=no

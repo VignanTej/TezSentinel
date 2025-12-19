@@ -1,0 +1,8 @@
+[Unit]
+Description=Auto-unmount SD Card Partition %i
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStop=/usr/local/bin/sdcard-unmount.sh %i

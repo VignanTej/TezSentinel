@@ -1,0 +1,8 @@
+# Udev rule for automatic SD card mounting/unmounting using systemd
+# Triggers on any MMC block device partition (works with any SD card)
+
+# Match any mmcblk device partition that is added - start both mount and unmount services
+ACTION=="add", KERNEL=="mmcblk[0-9]p[0-9]*", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", TAG+="systemd", ENV{SYSTEMD_WANTS}+="sdcard-automount@%k.service sdcard-unmount@%k.service"
+
+# Match any mmcblk device partition that is removed - stop the unmount service which triggers ExecStop
+ACTION=="remove", KERNEL=="mmcblk[0-9]p[0-9]*", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", TAG+="systemd", RUN+="/bin/systemctl stop sdcard-unmount@%k.service"
