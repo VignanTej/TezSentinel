@@ -1,274 +1,294 @@
-# SD Card Auto-Mount System
+# TezSentinel
+
+A comprehensive smart home and surveillance system running on NanoPi-R76S with Rockchip hardware acceleration. This repository contains the complete infrastructure for home automation, network video recording, and system utilities.
+
+## 🏠 Overview
+
+TezSentinel is a complete home automation and surveillance solution with:
+
+- **Smart Home Hub** - Home Assistant for device integration and automation
+- **Network Video Recorder** - Frigate NVR with Rockchip hardware acceleration
+- **Automation Engine** - Node-RED for flow-based automation
+- **MQTT Broker** - Mosquitto for reliable message passing
+- **System Utilities** - Automated SD card management
+
+## 📁 Repository Structure
+
+```
+.
+├── AutoMountSDCard/      # SD card auto-mount utility
+├── Frigate/              # Frigate NVR configuration
+├── HA/                   # Home Assistant configuration
+├── NR+MQTT/              # Node-RED and Mosquitto data
+├── docker-compose.yaml   # Docker stack definition
+├── DOCKER_STORAGE_FIX.md # Docker overlayfs troubleshooting
+└── .gitignore            # Git ignore rules
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- NanoPi-R76S or compatible Rockchip SBC
+- Linux 6.1 or higher
+- Docker and Docker Compose
+- Minimum 4GB RAM recommended
+- SD card or dedicated storage for recordings
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url> TezSentinel
+   cd TezSentinel
+   ```
+
+2. **Start the Docker stack:**
+   ```bash
+   sudo docker compose up -d
+   ```
+
+3. **Access the services:**
+   - Home Assistant: `http://<your-ip>:8123`
+   - Frigate NVR: `http://<your-ip>:8971`
+   - Node-RED: `http://<your-ip>:1880`
+   - MQTT Broker: `<your-ip>:1883`
+
+## 🔧 Components
+
+### Docker Compose Stack
+
+The main Docker Compose stack includes four integrated services:
+
+#### 1. Frigate NVR
+- **Purpose:** AI-powered Network Video Recorder with object detection
+- **Image:** `ghcr.io/blakeblackshear/frigate:stable-rk` (Rockchip optimized)
+- **Port:** 8971 (Web UI), 8554 (RTSP), 1984 (go2rtc API)
+- **Features:**
+  - Rockchip hardware acceleration (RGA, MPP)
+  - Real-time object detection
+  - Event recording and clips
+  - RTSP stream support
+- **Configuration:** [`Frigate/config/`](Frigate/)
+
+#### 2. Home Assistant
+- **Purpose:** Smart home integration and automation platform
+- **Image:** `ghcr.io/home-assistant/home-assistant:stable`
+- **Port:** 8123
+- **Features:**
+  - Device integration
+  - Automation engine
+  - Dashboard customization
+  - Frigate integration
+- **Configuration:** [`HA/config/`](HA/)
+
+#### 3. Node-RED
+- **Purpose:** Flow-based automation and integration
+- **Image:** `nodered/node-red:latest`
+- **Port:** 1880
+- **Features:**
+  - Visual programming interface
+  - MQTT integration
+  - Custom automation flows
+  - Home Assistant integration
+- **Configuration:** [`NR+MQTT/data/`](NR+MQTT/)
+
+#### 4. Mosquitto MQTT
+- **Purpose:** Message broker for IoT communication
+- **Image:** `eclipse-mosquitto:latest`
+- **Ports:** 1883 (MQTT), 9001 (WebSocket)
+- **Features:**
+  - Lightweight message broker
+  - Reliable message delivery
+  - WebSocket support
+- **Configuration:** [`NR+MQTT/mosquitto/`](NR+MQTT/)
+
+### AutoMountSDCard
 
 Automatic SD card mounting and unmounting system for Linux using udev and systemd.
 
-## Overview
+**Features:**
+- ✅ Automatic mounting on SD card insertion
+- ✅ Automatic unmounting on SD card removal
+- ✅ Intelligent remount capability
+- ✅ Comprehensive logging
+- ✅ User-agnostic installation
 
-This system automatically mounts SD card partitions when inserted and unmounts them when removed. It intelligently handles cases where partitions are already mounted by unmounting and remounting them fresh.
+**Documentation:** [`AutoMountSDCard/README.md`](AutoMountSDCard/README.md)
 
-## Features
-
-- ✅ **Automatic mounting** on SD card insertion
-- ✅ **Automatic unmounting** on SD card removal
-- ✅ **Intelligent remount** - unmounts and remounts if already mounted
-- ✅ **Filesystem detection** - only mounts partitions with valid filesystems
-- ✅ **Works with any SD card** - not device-specific
-- ✅ **User-agnostic** - automatically detects and configures for any user
-- ✅ **Comprehensive logging** - all operations logged to `/var/log/sdcard-automount.log`
-- ✅ **Convenient access** - symlink at `~/sdcard_data` for easy access
-
-## System Components
-
-### 1. Mount Script
-- **File:** `sdcard-automount.sh`
-- **Location:** `/usr/local/bin/sdcard-automount.sh`
-- **Purpose:** Handles mounting logic, filesystem detection, and remounting
-
-### 2. Unmount Script
-- **File:** `sdcard-unmount.sh`
-- **Location:** `/usr/local/bin/sdcard-unmount.sh`
-- **Purpose:** Handles unmounting and cleanup of mount points
-
-### 3. Systemd Services
-- **Mount Service:** `sdcard-automount@.service` → `/etc/systemd/system/`
-- **Unmount Service:** `sdcard-unmount@.service` → `/etc/systemd/system/`
-- **Purpose:** Template services triggered by udev for each partition
-
-### 4. Udev Rule
-- **File:** `99-sdcard-automount.rules`
-- **Location:** `/etc/udev/rules.d/99-sdcard-automount.rules`
-- **Purpose:** Detects SD card insertion/removal and triggers systemd services
-
-### 5. Sudoers Rule
-- **File:** `sdcard-automount-sudoers`
-- **Location:** `/etc/sudoers.d/sdcard-automount`
-- **Purpose:** Allows unmount script to run with root privileges
-
-## Quick Installation
-
-### Automatic Installation (Recommended)
-
-1. Navigate to the AutoMountSDCard directory:
+**Installation:**
 ```bash
-cd ~/TezSentinel/AutoMountSDCard
-```
-
-2. Run the installer:
-```bash
+cd AutoMountSDCard
 sudo ./install.sh
 ```
 
-The installer will:
-- ✅ Install mount and unmount scripts
-- ✅ Configure systemd services
-- ✅ Set up udev rules for hotplug detection
-- ✅ Configure sudo permissions
-- ✅ Create convenient access symlink at `~/sdcard_data`
-- ✅ Work for any user (automatically detects the user running it)
+## 🛠️ Configuration
 
-### Manual Installation
+### Docker Compose
 
-If you prefer manual installation, follow these steps:
+The [`docker-compose.yaml`](docker-compose.yaml) file defines the entire stack with:
+- Shared network (`tez-sentinel-net`) for inter-service communication
+- Volume mounts for persistent data
+- Hardware device access for Rockchip acceleration
+- Health checks for service monitoring
 
-#### Step 1: Copy Scripts
+### Environment Variables
+
+Key environment variables in docker-compose:
+
+- `TZ=Asia/Kolkata` - Timezone setting
+- `FRIGATE_RTSP_PASSWORD` - RTSP stream password
+
+### Networking
+
+All services are connected via the `tez-sentinel-network` bridge network, enabling:
+- MQTT communication between services
+- Frigate integration with Home Assistant
+- Node-RED automation flows
+
+## 📊 Hardware Acceleration
+
+This setup leverages Rockchip hardware acceleration for efficient video processing:
+
+- **RGA** (Raster Graphic Acceleration) - Image scaling and format conversion
+- **MPP** (Media Process Platform) - Hardware video encoding/decoding
+- **VPU** (Video Processing Unit) - H.264/H.265 support
+
+**Devices accessed:**
+- `/dev/dri` - GPU/VPU access
+- `/dev/dma_heap` - DMA heap for hardware acceleration
+- `/dev/rga` - RGA unit
+- `/dev/mpp_service` - MPP service
+
+## 🐛 Troubleshooting
+
+### Docker Storage Issues
+
+If you encounter overlayfs errors, see the [`DOCKER_STORAGE_FIX.md`](DOCKER_STORAGE_FIX.md) guide.
+
+**Quick fix:**
 ```bash
-sudo cp sdcard-automount.sh /usr/local/bin/
-sudo cp sdcard-unmount.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/sdcard-automount.sh
-sudo chmod +x /usr/local/bin/sdcard-unmount.sh
+sudo apt-get install fuse-overlayfs
+sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+{
+  "storage-driver": "fuse-overlayfs"
+}
+EOF
+sudo systemctl restart docker
 ```
 
-#### Step 2: Install Systemd Services
+### Service Logs
+
+View logs for any service:
 ```bash
-sudo cp sdcard-automount@.service /etc/systemd/system/
-sudo cp sdcard-unmount@.service /etc/systemd/system/
-sudo systemctl daemon-reload
+# All services
+sudo docker compose logs -f
+
+# Specific service
+sudo docker compose logs -f frigate
+sudo docker compose logs -f homeassistant
+sudo docker compose logs -f node-red
+sudo docker compose logs -f mosquitto
 ```
 
-#### Step 3: Install Udev Rule
-```bash
-sudo cp 99-sdcard-automount.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-```
-
-#### Step 4: Install Sudoers Rule
-```bash
-sudo cp sdcard-automount-sudoers /etc/sudoers.d/sdcard-automount
-sudo chmod 0440 /etc/sudoers.d/sdcard-automount
-sudo visudo -c  # Verify syntax
-```
-
-#### Step 5: Create Access Symlink
-```bash
-sudo mkdir -p /media/sdcard
-ln -s /media/sdcard ~/sdcard_data
-```
-
-## Usage
-
-### Access Mounted SD Card
-All mounted partitions appear at:
-```bash
-/home/pi/sdcard_data/
-```
-
-Example:
-```bash
-ls /home/pi/sdcard_data/
-# Shows: mmcblk0p8  mm
-cblk0p9
-
-ls /home/pi/sdcard_data/mmcblk0p9/
-# Shows your data directories
-```
-
-### View Logs
-```bash
-tail -f /var/log/sdcard-automount.log
-```
-
-### Manual Testing
-**Mount a partition:**
-```bash
-sudo systemctl start sdcard-automount@mmcblk0p9.service
-```
-
-**Unmount a partition:**
-```bash
-sudo systemctl stop sdcard-unmount@mmcblk0p9.service
-```
-
-## How It Works
-
-### On SD Card Insertion
-1. Udev detects new mmcblk partition
-2. Triggers `sdcard-automount@{partition}.service`
-3. Script checks if filesystem exists
-4. If partition already mounted → unmounts first
-5. Mounts partition to `/media/sdcard/{partition}/`
-6. Makes accessible via symlink at `/home/pi/sdcard_data/`
-
-### On SD Card Removal
-1. Udev detects partition removal
-2. Triggers systemd to stop `sdcard-unmount@{partition}.service`
-3. Service executes `ExecStop` which runs unmount script
-4. Script unmounts partition
-5. Cleans up mount point directory
-
-## Uninstallation
-
-### Automatic Uninstallation (Recommended)
+### Service Management
 
 ```bash
-cd ~/TezSentinel/AutoMountSDCard
-sudo ./uninstall.sh
+# Start all services
+sudo docker compose up -d
+
+# Stop all services
+sudo docker compose down
+
+# Restart a specific service
+sudo docker compose restart frigate
+
+# View service status
+sudo docker compose ps
 ```
 
-The uninstaller will:
-- Remove all installed components
-- Stop running services
-- Clean up configuration files
-- Preserve logs for reference
+## 🔒 Security
 
-### Manual Uninstallation
+### Credentials
+- Credentials are stored in service-specific configuration files
+- `.gitignore` excludes sensitive files from version control
+- MQTT and other passwords should be changed from defaults
 
-See the uninstall.sh script for detailed manual removal steps.
+### Network Security
+- Tailscale provides encrypted access without exposing ports
+- Services run in isolated Docker network
+- Only necessary ports are exposed to host
 
-## Troubleshooting
+### Excluded from Git
+The `.gitignore` file protects:
+- Storage and recordings
+- Database files
+- Secrets and credentials
+- Log files
+- Model cache
+- Runtime files
 
-### Check if services are running
+## 📝 Maintenance
+
+### Backups
+
+Important directories to backup:
 ```bash
-systemctl status sdcard-automount@mmcblk0p9.service
-systemctl status sdcard-unmount@mmcblk0p9.service
+HA/config/          # Home Assistant configuration
+Frigate/config/     # Frigate configuration
+NR+MQTT/data/       # Node-RED flows
+NR+MQTT/mosquitto/config/  # MQTT configuration
 ```
 
-### Check udev rule is loaded
+### Updates
+
+Update all services:
 ```bash
-sudo udevadm control --reload-rules
-udevadm test /sys/block/mmcblk0/mmcblk0p9
+sudo docker compose pull
+sudo docker compose up -d
 ```
 
-### Check current mounts
-```bash
-df -h | grep mmcblk
-mount | grep sdcard
-```
+## 📚 Documentation
 
-### View detailed logs
-```bash
-# Mount/unmount operations
-cat /var/log/sdcard-automount.log
+- **AutoMountSDCard:** [`AutoMountSDCard/README.md`](AutoMountSDCard/README.md)
+- **Docker Storage Fix:** [`DOCKER_STORAGE_FIX.md`](DOCKER_STORAGE_FIX.md)
 
-# Systemd journal
-journalctl -u sdcard-automount@mmcblk0p9.service
-journalctl -u sdcard-unmount@mmcblk0p9.service
+## 🖥️ System Requirements
 
-# Udev events
-journalctl -u systemd-udevd | grep sdcard
-```
+**Hardware:**
+- NanoPi-R76S or compatible Rockchip SBC
+- Minimum 4GB RAM (8GB recommended)
+- 32GB+ storage for OS and applications
+- Separate storage for recordings (SD card, USB drive, or NAS)
 
-### Permission issues
-If unmounting fails with permission errors:
-```bash
-# Verify sudoers file
-sudo visudo -c
-sudo cat /etc/sudoers.d/sdcard-automount
-```
+**Software:**
+- Operating System: Linux 6.1+
+- Docker Engine: 20.10+
+- Docker Compose: 2.0+
 
-## Files Included
+## 🔗 Useful Links
 
-- `install.sh` - Automatic installer script
-- `uninstall.sh` - Automatic uninstaller script
-- `sdcard-automount.sh` - Main mount logic script
-- `sdcard-unmount.sh` - Unmount helper script
-- `sdcard-automount@.service` - Systemd mount service template
-- `sdcard-unmount@.service` - Systemd unmount service template
-- `99-sdcard-automount.rules` - Udev hotplug detection rule
-- `sdcard-automount-sudoers` - Sudo permissions configuration
-- `README.md` - This documentation
+- [Home Assistant Documentation](https://www.home-assistant.io/docs/)
+- [Frigate Documentation](https://docs.frigate.video/)
+- [Node-RED Documentation](https://nodered.org/docs/)
+- [Mosquitto Documentation](https://mosquitto.org/documentation/)
+- [Tailscale Documentation](https://tailscale.com/kb/)
 
-## Technical Details
+## 📄 License
 
-### Supported Filesystems
-- ext2, ext3, ext4
-- FAT16, FAT32, exFAT
-- NTFS
-- Any filesystem with `blkid` detection
+This project is configured for personal use. Individual components are licensed under their respective licenses:
+- Home Assistant: Apache License 2.0
+- Frigate: MIT License
+- Node-RED: Apache License 2.0
+- Mosquitto: EPL/EDL
 
-### Mount Point Structure
-```
-/media/sdcard/
-├── mmcblk0p1/  (if has filesystem)
-├── mmcblk0p8/  (rootfs partition)
-└── mmcblk0p9/  (userdata partition)
-```
+## 👤 Author
 
-### Security
-- Scripts run with systemd (root privileges)
-- Sudoers rule allows specific script only
-- No password required for unmoun operation
-- Mount points have 755 permissions
-
-## Implementation Notes
-
-- Developed and tested on NanoPi R76S running Linux 6.1
-- Compatible with any Linux system using udev and systemd
-- Handles multiple SD cards simultaneously
-- Skips partitions without filesystems (boot loaders, etc.)
-- Automatically cleans up stale mount points
-- User-agnostic installation (works for any Linux user)
-
-## License
-
-This implementation is provided as-is for system administration purposes.
-
-## Version History
-
-- **v1.0** - Initial implementation with basic mount/unmount
-- **v2.0** - Added systemd integration for reliable unmounting
-- **v3.0** - Added intelligent remount capability when already mounted
-- **v3.1** - Created automatic install/uninstall scripts with user detection
+**Tez Solutions**
+- Device: NanoPi-R76S (bambooranch)
+- Location: Asia/Kolkata
+- Network: 192.168.1.0/24
 
 ---
-*Created: 2025-12-19*
+
 *Last Updated: 2025-12-19*
