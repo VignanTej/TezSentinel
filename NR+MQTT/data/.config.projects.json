@@ -1,8 +1,0 @@
-{
-    "projects": {
-        "BambooRanch": {
-            "credentialSecret": "TezAdmin#123"
-        }
-    },
-    "activeProject": "BambooRanch"
-}
