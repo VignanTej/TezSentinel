@@ -54,3 +54,5 @@
 # OS files
 .DS_Store
 Thumbs.db
+NR+MQTT/data/.config.projects.json
+NR+MQTT/data/.config.users.json

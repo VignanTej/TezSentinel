@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TezSentinel - Service Dashboard</title>
+    <link rel="icon" type="image/png" href="https://tezsolutions.in/lovable-uploads/aff249bb-0cbd-4ac4-a8ba-d0090dce1a4a.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+           transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+        
+        .service-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .service-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .service-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+        
+        .service-url {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #667eea;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .hostname {
+            font-family: 'Courier New', monospace;
+            background: #e8f4f8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #0066cc;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 25px;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 TezSentinel</h1>
+        <p class="subtitle">Home Automation & Security Dashboard</p>
+        
+        <div class="services-grid">
+            <a href="https://bambooranch:8971" class="service-card" target="_blank">
+                <div class="service-icon">📹</div>
+                <div class="service-name">Frigate NVR</div>
+                <div class="service-description">Camera surveillance and recording with AI detection</div>
+                <div class="service-url">https://bambooranch:8971</div>
+            </a>
+            
+            <a href="http://bambooranch:8123" class="service-card" target="_blank">
+                <div class="service-icon">🏡</div>
+                <div class="service-name">Home Assistant</div>
+                <div class="service-description">Smart home automation and control center</div>
+                <div class="service-url">http://bambooranch:8123</div>
+            </a>
+            
+            <a href="http://bambooranch:1880" class="service-card" target="_blank">
+                <div class="service-icon">🔀</div>
+                <div class="service-name">Node-RED</div>
+                <div class="service-description">Flow-based automation and programming tool</div>
+                <div class="service-url">http://bambooranch:1880</div>
+            </a>
+            
+            <a href="http://bambooranch:9001" class="service-card" target="_blank">
+                <div class="service-icon">📡</div>
+                <div class="service-name">Mosquitto MQTT</div>
+                <div class="service-description">MQTT broker WebSocket interface</div>
+                <div class="service-url">http://bambooranch:9001</div>
+            </a>
+        </div>
+        
+        <div class="info-box">
+            <h3>📌 Access Information</h3>
+            <p>
+                These services are accessible from any device on your Tailscale network using the 
+                <span class="hostname">bambooranch</span> hostname. Click any service card above to open it in a new tab.
+            </p>
+        </div>
+        
+        <div class="info-box" style="margin-top: 15px; border-left-color: #28a745;">
+            <h3>🔐 Security Notes</h3>
+            <p>
+                • Frigate uses HTTPS (port 8971) with a self-signed certificate<br>
+                • Home Assistant has built-in authentication<br>
+                • Configure authentication for Node-RED in its settings<br>
+                • Mosquitto requires username/password for MQTT connections
+            </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <p style="color: #999; font-size: 0.9em; margin-bottom: 10px;">Powered by</p>
+            <a href="https://tezsolutions.in" target="_blank" style="display: inline-block;">
+                <img src="https://tezsolutions.in/lovable-uploads/16fe6d0b-cecd-4749-a457-25491b16175f.png"
+                     alt="Tez Solutions"
+                     style="height: 40px; opacity: 0.8; transition: opacity 0.3s ease;"
+                     onmouseover="this.style.opacity='1'"
+                     onmouseout="this.style.opacity='0.8'">
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,38 @@
 services:
+  # Nginx Reverse Proxy for Tailscale access
+  nginx:
+    container_name: nginx-proxy
+    image: nginx:alpine
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - ./nginx/logs:/var/log/nginx
+    
+    networks:
+      - tez-sentinel-net
+    
+    # Enable access to host network services (for Home Assistant)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+    depends_on:
+      - frigate
+      - node-red
+      - mosquitto
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   # Frigate NVR with Rockchip hardware acceleration
   frigate:
     container_name: frigate
@@ -23,7 +57,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./Frigate/config:/config
-      - ./Frigate/storage:/media/frigate
+      - /media/sdcard/mmcblk0p1/frigate:/media/frigate
       - /sys/:/sys/:ro  # Required for Rockchip hardware access
       - type: tmpfs  # Optional: 1GB of memory, reduces SSD/SD Card wear
         target: /tmp/cache
